@@ -21,7 +21,7 @@ import org.apache.http.message.BasicHeader;
  * @author owisho
  *
  */
-public class RangeRequestTest1 {
+public class RangeRequestTest {
 
 	public static void main(String[] args) throws Exception{
 		requestWithRange();
@@ -29,18 +29,30 @@ public class RangeRequestTest1 {
 	
 	public static void requestWithRange() throws ClientProtocolException, IOException {
 		HttpClientBuilder builder = HttpClientBuilder.create();
-		List<BasicHeader> headers = new ArrayList<BasicHeader>();
-		BasicHeader rangeHeader = new BasicHeader("Range", "bytes=0-10000");
-		headers.add(rangeHeader);
-		builder.setDefaultHeaders(headers);
-		HttpClient client = builder.build();
-		HttpResponse resp = client.execute(new HttpHost("localhost",8080),new HttpGet("/rangerequest"));
-		InputStream respin = resp.getEntity().getContent();
+		long start = 0;
+		long end = 10000;
 		FileOutputStream oStream = new FileOutputStream(new File("C:\\Users\\owisho\\Desktop\\2.jpg"));
-		int read = -1;
-		while((read=respin.read())!=-1) {
-			oStream.write(read);
+		while(true) {
+			BasicHeader rangeHeader = new BasicHeader("Range", "bytes="+start+"-"+end);
+			List<BasicHeader> headers = new ArrayList<BasicHeader>();
+			headers.add(rangeHeader);
+			builder.setDefaultHeaders(headers);
+			HttpClient client = builder.build();
+			HttpResponse resp = client.execute(new HttpHost("localhost",8080),new HttpGet("/rangerequest"));
+			System.out.println(resp);
+			InputStream respin = resp.getEntity().getContent();
+			int read = -1;
+			int index = 1;
+			while((read=respin.read())!=-1) {
+ 				oStream.write(read);
+				index++;
+			}
+			if(index<10000)
+				break;
+			start = end+1;
+			end = end+10000;
 		}
 		oStream.close();
+		
 	}
 }
